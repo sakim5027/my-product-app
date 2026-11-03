@@ -178,75 +178,131 @@ class _ProductPageState extends State<ProductPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Autumn Product Manager')),
-      body: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-        stream: _productStream,
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(
-              child: Text(
-                'Products could not load. Check connection and permissions.',
-              ),
-            );
-          }
-          if (!snapshot.hasData) {
-            return const Center(child: CircularProgressIndicator());
-          }
-          final documents = snapshot.data!.docs;
-          if (documents.isEmpty) {
-            return const Center(
-              child: Text('No products yet. Add one to begin.'),
-            );
-          }
-          return ListView.builder(
-            itemCount: documents.length,
-            itemBuilder: (context, index) {
-              final document = documents[index];
-              final data = document.data();
-              final name = data['name'];
-              final price = data['price'];
-              if (name is! String ||
-                  name.trim().isEmpty ||
-                  price is! num ||
-                  !price.isFinite ||
-                  price < 0) {
-                return ListTile(
-                  title: Text(
-                    'Invalid product ${document.id}: check name/price types.',
-                  ),
+      body: Column(
+        children: [
+          _buildFilters(),
+          Expanded(
+            child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+              stream: _productStream,
+              builder: (context, snapshot) {
+                if (snapshot.hasError) {
+                  return const Center(
+                    child: Text(
+                      'Products could not load. Check connection and permissions.',
+                    ),
+                  );
+                }
+                if (!snapshot.hasData) {
+                  return const Center(child: CircularProgressIndicator());
+                }
+                final documents = snapshot.data!.docs;
+                if (documents.isEmpty) {
+                  return const Center(
+                    child: Text('No products yet. Add one to begin.'),
+                  );
+                }
+
+                //check price input errors
+                final error = _validatePrices();
+                if (error != null) {
+                  return Center(
+                    child: Text(
+                      error,
+                      style: const TextStyle(color: Colors.red),
+                    ),
+                  );
+                }
+
+                //read entered filter values
+                final search = _searchController.text.trim().toLowerCase();
+                final min = double.tryParse(_minController.text.trim());
+                final max = double.tryParse(_maxController.text.trim());
+
+                //filter products from the existing Firebase snapshot
+                final filteredDocuments = documents.where((document) {
+                  final data = document.data();
+                  final name = data['name'];
+                  final price = data['price'];
+
+                  //ignore invalid products
+                  if (name is! String ||
+                      name.trim().isEmpty ||
+                      price is! num ||
+                      !price.isFinite ||
+                      price < 0) {
+                    return false;
+                  }
+                  //check product name
+                  if (!name.trim().toLowerCase().contains(search)) {
+                    return false;
+                  }
+                  //check min price
+                  if (min != null && price < min) {
+                    return false;
+                  }
+                  //check max price
+                  if (max != null && price > max) {
+                    return false;
+                  }
+                  //product passes all filters
+                  return true;
+                }).toList();
+
+                //no matching products found
+                if (filteredDocuments.isEmpty) {
+                  return Center(child: Text('No products found.'));
+                }
+
+                //display matching products
+
+                return ListView.builder(
+                  itemCount: filteredDocuments.length,
+                  itemBuilder: (context, index) {
+                    final document = filteredDocuments[index];
+                    final data = document.data();
+                    final name = data['name'];
+                    final price = data['price'];
+                    if (name is! String ||
+                        name.trim().isEmpty ||
+                        price is! num ||
+                        !price.isFinite ||
+                        price < 0) {
+                      return ListTile(
+                        title: Text(
+                          'Invalid product ${document.id}: check name/price types.',
+                        ),
+                      );
+                    }
+                    return Card(
+                      child: ListTile(
+                        title: Text(name),
+                        subtitle: Text(
+                          '${price.toStringAsFixed(2)}\nID: ${document.id}',
+                        ),
+                        isThreeLine: true,
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            IconButton(
+                              tooltip: 'Edit product',
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => _createOrUpdate(document),
+                            ),
+                            IconButton(
+                              tooltip: 'Delete product',
+                              icon: const Icon(Icons.delete),
+                              onPressed: () => _deleteProduct(document.id),
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  },
                 );
-              }
-              return Card(
-                child: ListTile(
-                  title: Text(name),
-                  subtitle: Text(
-                    '${price.toStringAsFixed(2)}\nID: ${document.id}',
-                  ),
-                  isThreeLine: true,
-                  trailing: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      IconButton(
-                        tooltip: 'Edit product',
-                        icon: const Icon(Icons.edit),
-                        onPressed: () => _createOrUpdate(document),
-                      ),
-                      IconButton(
-                        tooltip: 'Delete product',
-                        icon: const Icon(Icons.delete),
-                        onPressed: () => _deleteProduct(document.id),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            },
-          );
-        },
-      ),
-      floatingActionButton: FloatingActionButton(
-        tooltip: 'Create product',
-        onPressed: () => _createOrUpdate(),
-        child: const Icon(Icons.add),
+              },
+            ),
+          ),
+        ],
       ),
     );
   }
