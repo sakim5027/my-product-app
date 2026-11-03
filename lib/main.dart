@@ -25,6 +25,9 @@ class ProductPage extends StatefulWidget {
 class _ProductPageState extends State<ProductPage> {
   final _products = FirebaseFirestore.instance.collection('products');
   late final _productStream = _products.snapshots();
+  final _searchController = TextEditingController();
+  final _minController = TextEditingController();
+  final _maxController = TextEditingController();
 
   Future<void> _createOrUpdate([
     QueryDocumentSnapshot<Map<String, dynamic>>? document,
