@@ -81,6 +81,73 @@ class _ProductPageState extends State<ProductPage> {
     }
   }
 
+  Widget _buildFilters() {
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        children: [
+          //search product names
+          TextField(
+            controller: _searchController,
+            decoration: const InputDecoration(
+              labelText: 'Search by name',
+              border: OutlineInputBorder(),
+            ),
+            onChanged: (value) {
+              setState(() {});
+            },
+          ),
+
+          const SizedBox(height: 10),
+
+          //Min & Max prices
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _minController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Min price',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+
+              const SizedBox(width: 10),
+
+              Expanded(
+                child: TextField(
+                  controller: _maxController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: const InputDecoration(
+                    labelText: 'Max price',
+                    border: OutlineInputBorder(),
+                  ),
+                  onChanged: (value) {
+                    setState(() {});
+                  },
+                ),
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          //clear all filters
+          ElevatedButton(onPressed: _resetFilters, child: const Text('Reset')),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
