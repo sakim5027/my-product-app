@@ -40,10 +40,26 @@ class _ProductPageState extends State<ProductPage> {
   }
 
   Future<void> _deleteProduct(String id) async {
-    //TODO: Await deletion by ID; report failures, not false success.
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Delete is not implemented yet.')),
-    );
+    try {
+      //delete the product by its ID
+      await _products.doc(id).delete();
+
+      //check if the widget still exists
+      if (!mounted) return;
+
+      //show success only after deletion completes
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Product deleted successfully.')),
+      );
+    } on FirebaseException catch (error) {
+      //check if the widget still exists
+      if (!mounted) return;
+
+      //show error message if deletion fails
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Delete failed: ${error.code}')));
+    }
   }
 
   @override
