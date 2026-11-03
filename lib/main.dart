@@ -37,6 +37,14 @@ class _ProductPageState extends State<ProductPage> {
     super.dispose();
   }
 
+  void _resetFilters() {
+    _searchController.clear();
+    _minController.clear();
+    _maxController.clear();
+
+    setState(() {});
+  }
+
   Future<void> _createOrUpdate([
     QueryDocumentSnapshot<Map<String, dynamic>>? document,
   ]) async {
