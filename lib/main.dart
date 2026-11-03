@@ -148,6 +148,32 @@ class _ProductPageState extends State<ProductPage> {
     );
   }
 
+  String? _validatePrices() {
+    final minText = _minController.text.trim();
+    final maxText = _maxController.text.trim();
+
+    final min = double.tryParse(minText);
+    final max = double.tryParse(maxText);
+
+    //check minimum price
+    if (minText.isNotEmpty && (min == null || !min.isFinite || min < 0)) {
+      return 'Enter a valid minimum price';
+    }
+
+    //check maximum price
+    if (maxText.isNotEmpty && (max == null || !max.isFinite || max < 0)) {
+      return 'Enter a valid maximum price';
+    }
+
+    //minimum cannot be greater than maximum
+    if (min != null && max != null && min > max) {
+      return 'Minimum price cannot exceed maximum price';
+    }
+
+    //if no error
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
