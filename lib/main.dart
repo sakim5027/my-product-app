@@ -29,6 +29,14 @@ class _ProductPageState extends State<ProductPage> {
   final _minController = TextEditingController();
   final _maxController = TextEditingController();
 
+  @override
+  void dispose() {
+    _searchController.dispose();
+    _minController.dispose();
+    _maxController.dispose();
+    super.dispose();
+  }
+
   Future<void> _createOrUpdate([
     QueryDocumentSnapshot<Map<String, dynamic>>? document,
   ]) async {
