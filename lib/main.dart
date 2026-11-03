@@ -304,6 +304,11 @@ class _ProductPageState extends State<ProductPage> {
           ),
         ],
       ),
+      floatingActionButton: FloatingActionButton(
+        tooltip: 'Create product',
+        onPressed: () => _createOrUpdate(),
+        child: const Icon(Icons.add),
+      ),
     );
   }
 }
